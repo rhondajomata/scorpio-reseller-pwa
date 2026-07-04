@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorpio Rizn - AI Scanner</title>
+    <!-- Connect to your PWA app settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="apple-touch-icon" href="icons/icon-512.png">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: #161b22;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h1 { color: #f0f6fc; text-align: center; font-size: 24px; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: #21262d;
+            border: 1px dashed #8b949e;
+            border-radius: 6px;
+            color: #c9d1d9;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:disabled { background-color: #21262d; color: #8b949e; cursor: not-allowed; }
+        
+        /* Specialized PWA Install Banner Style */
+        #pwaInstallBtn {
+            background-color: #58a6ff;
+            color: #0d1117;
+            margin-bottom: 20px;
+            display: none; /* Only shows if app isn't installed yet */
+        }
+        
+        #loading { display: none; text-align: center; margin-top: 15px; font-style: italic; color: #58a6ff; }
+        #resultContainer { margin-top: 25px; display: none; }
+        h2 { color: #58a6ff; font-size: 18px; margin-bottom: 10px; }
+        pre {
+            background-color: #0d1117;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- PWA Install Prompt Button -->
+    <button id="pwaInstallBtn">📲 Install ScorpioAI App</button>
+
+    <h1>Scorpio Rizn AI Reseller</h1>
+    <div class="input-group">
+        <label>📸 Photo 1: Full Shirt (with Quarter coin)</label>
+        <input type="file" id="shirtInput" accept="image/*">
+    </div>
+    <div class="input-group">
+        <label>🏷️ Photo 2: Care / Wash Tag</label>
+        <input type="file" id="tagInput" accept="image/*">
+    </div>
+    <button id="scanBtn" onclick="runAIScan()">Generate Marketplace Listing</button>
+    <div id="loading">🧠 Processing images and scaling sizes via AI... Please wait...</div>
+    <div id="resultContainer">
+        <h2>✨ AI Generated Output:</h2>
+        <pre id="resultText"></pre>
+    </div>
+</div>
+
+<script>
+// 1. REGISTER THE SERVICE WORKER (Enables PWA installation engine)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker running safely!'))
+        .catch(err => console.log('Service Worker setup error', err));
+    });
+}
+
+// 2. LOGIC TO SHOW THE "INSTALL APP" PROMPT BUTTON Automatically
+let deferredPrompt;
+const installBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block'; // Make button visible
+});
+
+installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+    }
+});
+
+// 3. CORE AI RUNNER
+async function runAIScan() {
+    const shirtInput = document.getElementById('shirtInput');
+    const tagInput = document.getElementById('tagInput');
+
+    if (shirtInput.files.length === 0 || tagInput.files.length === 0) {
+        alert("Please upload both photos to continue!");
+        return;
+    }
+
+    const btn = document.getElementById('scanBtn');
+    const loading = document.getElementById('loading');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultText = document.getElementById('resultText');
+
+    btn.disabled = true;
+    loading.style.display = "block";
+    resultContainer.style.display = "none";
+
+    const formData = new FormData();
+    formData.append("shirt", shirtInput.files[0]);
+    formData.append("tag", tagInput.files[0]);
+
+    try {
+        const response = await fetch("http://127.0.0", {
+            method: "POST",
+            body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+            resultText.innerText = data.listing;
+            resultContainer.style.display = "block";
+        } else {
+            alert("API Error: " + data.error);
+        }
+    } catch (err) {
+        alert("Connection error. Ensure your local Python backend is still running!");
+        console.error(err);
+    } finally {
+        btn.disabled = false;
+        loading.style.display = "none";
+    }
+}
+</script>
+</body>
+</html>

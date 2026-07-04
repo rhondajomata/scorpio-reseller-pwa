@@ -1,0 +1,17 @@
+{
+  "short_name": "ScorpioAI",
+  "name": "Scorpio Rizn AI Reseller Scanner",
+  "icons": [
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "display": "standalone",
+  "orientation": "portrait"
+}
