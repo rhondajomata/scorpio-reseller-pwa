@@ -234,7 +234,7 @@ async def read_index():
     </html>
     """
 
-@@app.post("/scan-clothing/")
+@app.post("/scan-clothing/")
 async def scan_clothing(shirt: UploadFile = File(...), tag: UploadFile = File(...)):
     try:
         shirt_bytes = await shirt.read()
