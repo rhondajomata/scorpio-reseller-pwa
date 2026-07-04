@@ -234,7 +234,7 @@ async def read_index():
     </html>
     """
 
-@app.post("/scan-clothing/")
+@@app.post("/scan-clothing/")
 async def scan_clothing(shirt: UploadFile = File(...), tag: UploadFile = File(...)):
     try:
         shirt_bytes = await shirt.read()
@@ -243,8 +243,8 @@ async def scan_clothing(shirt: UploadFile = File(...), tag: UploadFile = File(..
         image_shirt = types.Part.from_bytes(data=shirt_bytes, mime_type="image/jpeg")
         image_tag = types.Part.from_bytes(data=tag_bytes, mime_type="image/jpeg")
 
-              try:
-        prompt = (
+    try:
+             prompt = (
             "You are an expert reselling assistant for eBay and Vinted. "
             "Analyze these two images. One image contains the full retail item (clothing, shoes, or accessory) "
             "along with a standard US Quarter coin (0.955 inches in diameter) placed on it as a size reference. "
@@ -253,7 +253,8 @@ async def scan_clothing(shirt: UploadFile = File(...), tag: UploadFile = File(..
             "Next, read the care tag/branding for materials and sizing. Finally, generate an optimized marketplace listing. "
             "Do NOT use placeholders like [Insert Measurement Here]. Fill in the exact measurements you calculated."
         )
-        response = client.models.generate_content(
+
+ response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=[image_shirt, image_tag, prompt]
         )
